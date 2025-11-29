@@ -1,0 +1,41 @@
+type IPAsset @entity {
+  id: ID!
+  ipId: Bytes!
+  chainId: BigInt!
+  tokenContract: Bytes!
+  tokenId: BigInt!
+  owner: Bytes!
+  name: String
+  registrationDate: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  licenses: [License!]! @derivedFrom(field: "ipAsset")
+}
+
+type License @entity {
+  id: ID!
+  licenseTokenId: BigInt!
+  licensorIpId: Bytes!
+  licenseTermsId: BigInt!
+  amount: BigInt!
+  receiver: Bytes!
+  ipAsset: IPAsset
+  mintedAt: BigInt!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+}
+
+type User @entity {
+  id: ID!
+  address: Bytes!
+  ownedIPs: [IPAsset!]!
+  licenses: [License!]!
+  totalIPsRegistered: BigInt!
+  totalLicensesPurchased: BigInt!
+}
+
+type _Meta @entity {
+  id: ID!
+  deployment: String!
+  blockNumber: BigInt!
+}

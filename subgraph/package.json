@@ -1,0 +1,14 @@
+{
+  "name": "creatorbridge-subgraph",
+  "version": "1.0.0",
+  "description": "Subgraph for CreatorBridge IP Asset tracking on Story Protocol",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy:goldsky": "goldsky subgraph deploy creatorbridge-ip/1.0.0 --path ."
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "^0.60.0",
+    "@graphprotocol/graph-ts": "^0.31.0"
+  }
+}

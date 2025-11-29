@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  walletAddress String    @unique
+  name          String?
+  email         String?   @unique
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  ipAssets      IPAsset[]
+  transactions  Transaction[]
+}
+
+model IPAsset {
+  id            String    @id @default(cuid())
+  ipId          String?   @unique
+  title         String
+  description   String
+  imageUrl      String
+  priceEth      Float
+  txHash        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  creatorId     String
+  creator       User      @relation(fields: [creatorId], references: [id])
+  licenses      License[]
+}
+
+model License {
+  id            String    @id @default(cuid())
+  licenseId     String?   @unique
+  txHash        String?
+  purchasedAt   DateTime  @default(now())
+  
+  ipAssetId     String
+  ipAsset       IPAsset   @relation(fields: [ipAssetId], references: [id])
+  buyerId       String
+}
+
+model Transaction {
+  id            String    @id @default(cuid())
+  type          String
+  amount        Float
+  txHash        String
+  createdAt     DateTime  @default(now())
+  
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  assetId       String?
+  assetTitle    String
+}

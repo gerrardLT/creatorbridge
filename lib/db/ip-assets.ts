@@ -62,7 +62,14 @@ export async function createIPAsset(data: {
   priceEth: number;
   creatorId: string;
   ipId?: string;
+  tokenId?: string;
   txHash?: string;
+  // License fields
+  licenseType?: string;
+  mintingFee?: string;
+  commercialRevShare?: number;
+  licenseTermsId?: string;
+  spgNftContract?: string;
 }) {
   return prisma.iPAsset.create({
     data,

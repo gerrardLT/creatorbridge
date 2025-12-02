@@ -229,7 +229,7 @@ openssl rand -base64 32
 ```env
 # NextAuth
 NEXTAUTH_SECRET="生成的随机字符串"
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:3001"
 ```
 
 > 生产环境需要将 `NEXTAUTH_URL` 改为你的域名。
@@ -293,7 +293,7 @@ GOLDSKY_ENDPOINT="https://api.goldsky.com/api/public/project_xxx/subgraphs/story
 # NextAuth
 # ===================
 NEXTAUTH_SECRET="随机生成的32位字符串"
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:3001"
 ```
 
 ---
@@ -315,7 +315,7 @@ npx prisma db push
 npm run dev
 ```
 
-访问 http://localhost:3000 查看项目。
+访问 http://localhost:3001 查看项目。
 
 ---
 

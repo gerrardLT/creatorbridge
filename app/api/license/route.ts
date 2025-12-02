@@ -7,7 +7,16 @@ import { Address } from 'viem';
 // POST /api/license - Purchase license
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (jsonError) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
     const { ipAssetId, buyerId } = body;
 
     if (!ipAssetId || typeof ipAssetId !== 'string') {
@@ -34,13 +43,15 @@ export async function POST(request: NextRequest) {
     let licenseId = `license_${Date.now()}`;
     let onChain = false;
 
-    const { licenseTermsId, receiverAddress } = body;
+    const { receiverAddress } = body;
+    // Use the stored licenseTermsId from the asset
+    const storedLicenseTermsId = asset.licenseTermsId;
 
-    if (process.env.STORY_PRIVATE_KEY && asset.ipId && licenseTermsId && receiverAddress) {
+    if (process.env.STORY_PRIVATE_KEY && asset.ipId && storedLicenseTermsId && receiverAddress) {
       try {
         const result = await mintLicense(
           asset.ipId as Address,
-          licenseTermsId,
+          storedLicenseTermsId,
           1,
           receiverAddress as Address
         );
@@ -57,6 +68,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Determine the license price
+    const licensePrice = asset.mintingFee 
+      ? parseFloat(asset.mintingFee) 
+      : asset.priceEth;
+
     // Create license record
     const license = await createLicense({
       ipAssetId,
@@ -65,12 +81,22 @@ export async function POST(request: NextRequest) {
       txHash
     });
 
-    // Create transaction record
+    // Create transaction record for buyer
     await createTransaction({
       type: 'PURCHASE',
-      amount: asset.priceEth,
+      amount: licensePrice,
       txHash,
       userId: buyerId,
+      assetId: ipAssetId,
+      assetTitle: asset.title
+    });
+
+    // Create transaction record for creator (sale)
+    await createTransaction({
+      type: 'SALE',
+      amount: licensePrice,
+      txHash,
+      userId: asset.creatorId,
       assetId: ipAssetId,
       assetTitle: asset.title
     });

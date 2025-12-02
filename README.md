@@ -59,7 +59,7 @@ NEXT_PUBLIC_CDP_CLIENT_API_KEY="你的CDP客户端API密钥"
 
 # NextAuth
 NEXTAUTH_SECRET="随机生成的密钥"
-NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:3001"
 ```
 
 > 详细配置指南请查看 [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md)
@@ -77,7 +77,7 @@ npx prisma db push
 npm run dev
 ```
 
-访问 http://localhost:3000
+访问 http://localhost:3001
 
 ## 📁 项目结构
 

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findAllIPAssets, createIPAsset } from '@/lib/db';
 import { generateTxHash } from '@/lib/utils';
-import { registerIP } from '@/lib/story-protocol';
+import { registerIP, mintAndRegisterIPWithLicense } from '@/lib/story-protocol';
+import { constructIPMetadata } from '@/lib/license-utils';
 import { Address } from 'viem';
+import { LicenseType } from '@/lib/types/license';
+import { validateLicenseConfig } from '@/lib/validation';
 
 // GET /api/ip - List all IP assets
 export async function GET(request: NextRequest) {
@@ -35,6 +38,11 @@ export async function GET(request: NextRequest) {
       priceEth: asset.priceEth,
       createdAt: asset.createdAt.toISOString(),
       txHash: asset.txHash,
+      // License fields
+      licenseType: asset.licenseType,
+      mintingFee: asset.mintingFee,
+      commercialRevShare: asset.commercialRevShare,
+      licenseTermsId: asset.licenseTermsId,
       creator: {
         id: asset.creator.id,
         name: asset.creator.name || 'Unknown',
@@ -58,13 +66,32 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/ip - Register new IP asset
+// POST /api/ip - Register new IP asset with license
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { title, description, priceEth, imageUrl, creatorId } = body;
+    let body;
+    try {
+      body = await request.json();
+    } catch (jsonError) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
 
-    // Validation
+    const { 
+      title, 
+      description, 
+      priceEth, 
+      imageUrl, 
+      creatorId,
+      walletAddress,
+      licenseType,
+      mintingFee,
+      commercialRevShare 
+    } = body;
+
+    // Basic validation
     if (!title || typeof title !== 'string' || title.trim() === '') {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
@@ -81,30 +108,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Creator ID is required' }, { status: 400 });
     }
 
-    // Try to register on Story Protocol if configured
+    // Validate license configuration if provided
+    if (licenseType) {
+      const licenseValidation = validateLicenseConfig({
+        licenseType,
+        mintingFee,
+        commercialRevShare
+      });
+      if (!licenseValidation.valid) {
+        return NextResponse.json({ 
+          error: 'Invalid license configuration', 
+          details: licenseValidation.errors 
+        }, { status: 400 });
+      }
+    }
+
+    // Initialize response data
     let txHash = generateTxHash();
     let ipId = `ip_${Date.now()}`;
+    let tokenId: string | undefined;
+    let licenseTermsIds: string[] | undefined;
+    let spgNftContract: string | undefined;
     let onChain = false;
 
-    const nftContract = body.nftContract as Address | undefined;
-    const tokenId = body.tokenId as string | undefined;
-
-    if (process.env.STORY_PRIVATE_KEY && nftContract && tokenId) {
+    // Try to mint and register on Story Protocol if configured
+    if (process.env.STORY_PRIVATE_KEY && walletAddress && licenseType) {
       try {
-        const result = await registerIP({
-          nftContract,
-          tokenId,
-          metadata: {
-            name: title.trim(),
-            description: description.trim(),
-            image: imageUrl || 'https://picsum.photos/800/600',
-            contentType: 'image',
-          },
+        const ipMetadata = constructIPMetadata(
+          title.trim(),
+          description.trim(),
+          imageUrl || 'https://picsum.photos/800/600'
+        );
+
+        const result = await mintAndRegisterIPWithLicense({
+          recipient: walletAddress as Address,
+          licenseType: licenseType as LicenseType,
+          mintingFee,
+          commercialRevShare,
+          ipMetadata,
         });
 
         if (result.success && result.ipId && result.txHash) {
           ipId = result.ipId;
           txHash = result.txHash;
+          tokenId = result.tokenId;
+          licenseTermsIds = result.licenseTermsIds;
+          spgNftContract = result.spgNftContract;
           onChain = true;
         }
       } catch (error) {
@@ -112,6 +161,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Create database record
     const asset = await createIPAsset({
       title: title.trim(),
       description: description.trim(),
@@ -119,7 +169,13 @@ export async function POST(request: NextRequest) {
       priceEth,
       creatorId,
       ipId,
-      txHash
+      tokenId,
+      txHash,
+      licenseType,
+      mintingFee,
+      commercialRevShare,
+      licenseTermsId: licenseTermsIds?.[0],
+      spgNftContract,
     });
 
     return NextResponse.json({ 
@@ -131,6 +187,10 @@ export async function POST(request: NextRequest) {
         priceEth: asset.priceEth,
         createdAt: asset.createdAt.toISOString(),
         txHash: asset.txHash,
+        licenseType: asset.licenseType,
+        mintingFee: asset.mintingFee,
+        commercialRevShare: asset.commercialRevShare,
+        licenseTermsId: asset.licenseTermsId,
         creator: {
           id: asset.creator.id,
           name: asset.creator.name || 'Unknown',
@@ -139,7 +199,9 @@ export async function POST(request: NextRequest) {
         }
       },
       ipId,
+      tokenId,
       txHash,
+      licenseTermsIds,
       onChain
     }, { status: 201 });
   } catch (error) {

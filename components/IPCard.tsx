@@ -2,10 +2,19 @@
 
 import Link from 'next/link';
 import { IPAsset } from '@/types';
-import { ShieldCheck, User as UserIcon } from 'lucide-react';
+import { ShieldCheck, User as UserIcon, CheckCircle } from 'lucide-react';
+import LicenseBadge from './LicenseBadge';
+import { LicenseType } from '@/lib/types/license';
+
+interface ExtendedIPAsset extends IPAsset {
+  licenseType?: string | null;
+  mintingFee?: string | null;
+  commercialRevShare?: number | null;
+  ipId?: string | null;
+}
 
 interface IPCardProps {
-  asset: IPAsset;
+  asset: ExtendedIPAsset;
 }
 
 export function IPCard({ asset }: IPCardProps) {
@@ -33,9 +42,16 @@ export function IPCard({ asset }: IPCardProps) {
           </span>
         </div>
 
-        <div className="absolute top-3 right-3 z-30 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center space-x-1 border border-white/10 shadow-lg">
-          <ShieldCheck size={10} className="text-emerald-400" />
-          <span className="tracking-wider">VERIFIED</span>
+        <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between">
+          {asset.ipId && (
+            <span className="bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
+              <CheckCircle className="w-3 h-3" />
+              ON-CHAIN
+            </span>
+          )}
+          <div className="ml-auto">
+            <LicenseBadge licenseType={asset.licenseType} size="sm" />
+          </div>
         </div>
       </div>
 
@@ -59,9 +75,16 @@ export function IPCard({ asset }: IPCardProps) {
             )}
             <span className="text-xs font-medium text-zinc-500 truncate max-w-[100px] group-hover/creator:text-indigo-400 transition-colors">{asset.creator.name}</span>
           </div>
-          <span className="bg-white/5 border border-white/10 text-white px-3 py-1 rounded-lg text-xs font-bold font-mono group-hover:bg-indigo-500/10 group-hover:border-indigo-500/30 group-hover:text-indigo-300 transition-all">
-            {asset.priceEth} ETH
-          </span>
+          <div className="text-right">
+            <span className="bg-white/5 border border-white/10 text-white px-3 py-1 rounded-lg text-xs font-bold font-mono group-hover:bg-indigo-500/10 group-hover:border-indigo-500/30 group-hover:text-indigo-300 transition-all">
+              {asset.licenseType === LicenseType.NON_COMMERCIAL ? 'FREE' : `${asset.mintingFee || asset.priceEth} WIP`}
+            </span>
+            {asset.licenseType === LicenseType.COMMERCIAL_REMIX && asset.commercialRevShare && (
+              <div className="text-[10px] text-purple-400 mt-1">
+                +{asset.commercialRevShare}% rev share
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </Link>

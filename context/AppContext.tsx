@@ -14,7 +14,15 @@ interface AppContextType {
   walletAddress: string | null;
   login: () => Promise<void>;
   logout: () => void;
-  registerIP: (title: string, description: string, price: number, imageUrl: string) => Promise<void>;
+  registerIP: (
+    title: string, 
+    description: string, 
+    price: number, 
+    imageUrl: string,
+    licenseType?: string,
+    mintingFee?: string,
+    commercialRevShare?: number
+  ) => Promise<void>;
   buyLicense: (ipId: string) => Promise<void>;
   addNotification: (type: 'success' | 'error' | 'info', message: string) => void;
   refreshIPs: () => Promise<void>;
@@ -131,7 +139,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     addNotification('info', 'Wallet disconnected');
   };
 
-  const registerIP = async (title: string, description: string, price: number, imageUrl: string) => {
+  const registerIP = async (
+    title: string, 
+    description: string, 
+    price: number, 
+    imageUrl: string,
+    licenseType?: string,
+    mintingFee?: string,
+    commercialRevShare?: number
+  ) => {
     if (!user) return;
     setIsLoading(true);
 
@@ -144,7 +160,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           description,
           priceEth: price,
           imageUrl,
-          creatorId: user.id
+          creatorId: user.id,
+          walletAddress,
+          licenseType,
+          mintingFee,
+          commercialRevShare
         })
       });
 
@@ -153,12 +173,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (res.ok && data.asset) {
         await refreshIPs();
         await fetchTransactions(user.id);
-        addNotification('success', 'IP Registered on Story Protocol successfully!');
+        const onChainMsg = data.onChain 
+          ? 'IP Registered on Story Protocol successfully!' 
+          : 'IP saved locally (configure Story Protocol for on-chain registration)';
+        addNotification('success', onChainMsg);
       } else {
         throw new Error(data.error || 'Failed to register IP');
       }
     } catch (error) {
-      addNotification('error', 'Failed to register IP');
+      addNotification('error', error instanceof Error ? error.message : 'Failed to register IP');
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -167,7 +191,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const buyLicense = async (ipId: string) => {
     if (!user) {
       addNotification('error', 'Please connect wallet to purchase');
-      return;
+      throw new Error('Please connect wallet to purchase');
     }
 
     setIsLoading(true);
@@ -177,7 +201,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ipAssetId: ipId,
-          buyerId: user.id
+          buyerId: user.id,
+          receiverAddress: walletAddress
         })
       });
 
@@ -185,12 +210,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       
       if (res.ok && data.license) {
         await fetchTransactions(user.id);
-        addNotification('success', 'License acquired! Transaction confirmed.');
+        const onChainMsg = data.onChain 
+          ? 'License acquired on-chain! Transaction confirmed.' 
+          : 'License acquired! (Local record created)';
+        addNotification('success', onChainMsg);
       } else {
         throw new Error(data.error || 'Failed to purchase license');
       }
     } catch (error) {
-      addNotification('error', 'Transaction failed');
+      const errorMsg = error instanceof Error ? error.message : 'Transaction failed';
+      addNotification('error', errorMsg);
+      throw error;
     } finally {
       setIsLoading(false);
     }

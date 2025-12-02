@@ -88,14 +88,39 @@ git push -u origin main
 | `GOLDSKY_API_KEY` | `你的密钥` | Goldsky 索引器 |
 | `GOLDSKY_ENDPOINT` | `https://api.goldsky.com/...` | Goldsky 端点 |
 
-#### 添加步骤：
-1. 项目页面 → "Settings" 标签
-2. 左侧菜单 → "Environment Variables"
-3. 逐个添加变量：
-   - Name: `DATABASE_URL`
-   - Value: `postgresql://...`
-   - Environment: 选择 `Production`、`Preview`、`Development`
-   - 点击 "Save"
+#### 详细添加步骤：
+
+**⚠️ 重要：环境变量必须是 Plain Text，不能选择 Secret！**
+
+1. **进入项目设置**
+   - 访问 Vercel Dashboard
+   - 选择你的项目
+   - 点击顶部 **Settings** 标签
+
+2. **打开环境变量页面**
+   - 左侧菜单选择 **Environment Variables**
+
+3. **添加 DATABASE_URL（关键步骤）**
+   - 点击 **Add New** 按钮
+   - **Name**: 输入 `DATABASE_URL`
+   - **Value**: 粘贴你的 Neon 连接字符串
+     ```
+     postgresql://username:password@ep-xxx.us-east-2.aws.neon.tech/neondb?sslmode=require
+     ```
+   - **Environment**: 全选（Production、Preview、Development）
+   - ⚠️ **不要勾选** "Sensitive" 或选择 Secret
+   - 点击 **Save**
+
+4. **添加其他变量**（重复上述步骤）
+   - `STORY_RPC_URL`: `https://aeneid.storyrpc.io`
+   - `STORY_PRIVATE_KEY`: `0x你的私钥`
+   - `NEXT_PUBLIC_CDP_CLIENT_API_KEY`: `你的API密钥`
+   - `NEXTAUTH_SECRET`: （使用步骤 4 生成的密钥）
+   - `NEXTAUTH_URL`: `https://你的项目名.vercel.app`
+
+5. **验证配置**
+   - 确保所有变量显示为 **Plain Text**
+   - 确认环境选择正确（至少包含 Production）
 
 ---
 

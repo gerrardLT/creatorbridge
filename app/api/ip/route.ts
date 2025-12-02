@@ -7,6 +7,9 @@ import { Address } from 'viem';
 import { LicenseType } from '@/lib/types/license';
 import { validateLicenseConfig } from '@/lib/validation';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/ip - List all IP assets
 export async function GET(request: NextRequest) {
   try {

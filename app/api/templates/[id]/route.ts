@@ -7,6 +7,9 @@ import {
 } from '@/lib/db/templates';
 import { LicenseType } from '@/lib/types/license';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 interface RouteParams {
   params: Promise<{ id: string }>;
 }

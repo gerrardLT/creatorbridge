@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { upsertUser, findUserByWallet, findUserById } from '@/lib/db';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/user - Get user by wallet or id
 export async function GET(request: NextRequest) {
   try {

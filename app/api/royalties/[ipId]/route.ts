@@ -4,6 +4,9 @@ import { getDerivativesByParent } from '@/lib/db/derivatives';
 import { getRoyaltyData } from '@/lib/story-protocol';
 import { Address } from 'viem';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 interface RouteParams {
   params: Promise<{ ipId: string }>;
 }

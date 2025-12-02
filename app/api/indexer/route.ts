@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { queryIPAssets, searchIPAssets, isIndexerAvailable } from '@/lib/goldsky';
 import { findAllIPAssets } from '@/lib/db';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/indexer - Query indexed assets with fallback to database
 export async function GET(request: NextRequest) {
   try {

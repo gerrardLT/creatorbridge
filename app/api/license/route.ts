@@ -4,6 +4,9 @@ import { generateTxHash } from '@/lib/utils';
 import { mintLicense } from '@/lib/story-protocol';
 import { Address } from 'viem';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // POST /api/license - Purchase license
 export async function POST(request: NextRequest) {
   try {

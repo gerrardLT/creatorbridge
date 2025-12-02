@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDerivativesByParent, getDerivativeCount } from '@/lib/db/derivatives';
 import prisma from '@/lib/prisma';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 interface RouteParams {
   params: Promise<{ ipId: string }>;
 }

@@ -7,6 +7,9 @@ import { Address } from 'viem';
 import { LicenseType } from '@/lib/types/license';
 import prisma from '@/lib/prisma';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 /**
  * POST /api/derivatives - Register a derivative IP
  */

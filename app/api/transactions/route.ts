@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findTransactionsByUser } from '@/lib/db';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic';
+
 // GET /api/transactions - Get user's transactions
 export async function GET(request: NextRequest) {
   try {

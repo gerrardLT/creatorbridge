@@ -24,6 +24,14 @@ const LICENSE_FILTERS: { value: string; label: string; color: string }[] = [
   { value: LicenseType.COMMERCIAL_REMIX, label: 'Commercial Remix', color: 'purple' },
 ];
 
+type MediaType = '' | 'image' | 'video';
+
+const MEDIA_TYPE_FILTERS: { value: MediaType; label: string; icon: string }[] = [
+  { value: '', label: 'All Types', icon: '🎨' },
+  { value: 'image', label: 'Images', icon: '🖼️' },
+  { value: 'video', label: 'Videos', icon: '🎬' },
+];
+
 interface IPAsset {
   id: string;
   title: string;
@@ -56,6 +64,7 @@ export default function ExplorePage() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [showFilters, setShowFilters] = useState(false);
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [mediaTypeFilter, setMediaTypeFilter] = useState<MediaType>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [isFetching, setIsFetching] = useState(true);
 
@@ -105,7 +114,7 @@ export default function ExplorePage() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, creatorFilter, minPrice, maxPrice, verifiedOnly, licenseTypeFilter, sortBy]);
+  }, [debouncedSearch, creatorFilter, minPrice, maxPrice, verifiedOnly, licenseTypeFilter, sortBy, mediaTypeFilter]);
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 
@@ -116,8 +125,25 @@ export default function ExplorePage() {
     setMaxPrice('');
     setVerifiedOnly(false);
     setLicenseTypeFilter('');
+    setMediaTypeFilter('');
     setSortBy('newest');
   };
+
+  // Helper to detect if URL is a video
+  const isVideoUrl = (url: string) => {
+    return url?.includes('/api/video-proxy') ||
+      url?.endsWith('.mp4') ||
+      url?.includes('video') ||
+      url?.includes('_watermark.mp4');
+  };
+
+  // Filter IPs by media type (client-side)
+  const filteredIps = mediaTypeFilter
+    ? ips.filter(ip => {
+      const isVideo = isVideoUrl(ip.imageUrl);
+      return mediaTypeFilter === 'video' ? isVideo : !isVideo;
+    })
+    : ips;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white relative overflow-hidden pt-24 pb-20">
@@ -162,8 +188,8 @@ export default function ExplorePage() {
           </div>
         </div>
 
-        {/* License Type Quick Filters + Sort */}
-        <div className="flex flex-wrap items-center gap-3 mb-6">
+        {/* License Type Quick Filters */}
+        <div className="flex flex-wrap items-center gap-3 mb-4">
           {/* License Type Tabs */}
           <div className="flex items-center gap-2 flex-wrap">
             {LICENSE_FILTERS.map((license) => (
@@ -181,12 +207,28 @@ export default function ExplorePage() {
               </button>
             ))}
           </div>
+        </div>
 
-          {/* Divider */}
-          <div className="h-6 w-px bg-zinc-700 mx-2 hidden md:block"></div>
+        {/* Media Type Filters + Sort */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          {/* Media Type Tabs */}
+          <div className="flex items-center gap-2">
+            {MEDIA_TYPE_FILTERS.map((media) => (
+              <button
+                key={media.value}
+                onClick={() => setMediaTypeFilter(media.value)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${mediaTypeFilter === media.value
+                  ? 'bg-indigo-500/20 border border-indigo-500/50 text-indigo-400'
+                  : 'bg-zinc-800/50 border border-zinc-700 text-zinc-400 hover:bg-zinc-700/50 hover:text-white'
+                  }`}
+              >
+                {media.label}
+              </button>
+            ))}
+          </div>
 
           {/* Sort Dropdown - Custom */}
-          <div className="relative ml-auto min-w-[200px]">
+          <div className="relative min-w-[200px]">
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
               className="w-full flex items-center justify-between gap-2 bg-zinc-800/50 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white hover:bg-zinc-700/50 hover:border-zinc-600 transition-all cursor-pointer"
@@ -283,8 +325,13 @@ export default function ExplorePage() {
                 · {LICENSE_FILTERS.find(l => l.value === licenseTypeFilter)?.label}
               </span>
             )}
+            {mediaTypeFilter && (
+              <span className="ml-2 text-indigo-400">
+                · {MEDIA_TYPE_FILTERS.find(m => m.value === mediaTypeFilter)?.label}
+              </span>
+            )}
           </p>
-          {(searchTerm || creatorFilter || minPrice || maxPrice || verifiedOnly || licenseTypeFilter) && (
+          {(searchTerm || creatorFilter || minPrice || maxPrice || verifiedOnly || licenseTypeFilter || mediaTypeFilter) && (
             <button
               onClick={clearFilters}
               className="text-sm text-zinc-400 hover:text-indigo-400 transition-colors"
@@ -303,7 +350,7 @@ export default function ExplorePage() {
               </div>
             ))}
           </div>
-        ) : ips.length === 0 ? (
+        ) : filteredIps.length === 0 ? (
           <div className="text-center py-32 bg-zinc-900/30 backdrop-blur-sm rounded-3xl border border-dashed border-zinc-800 animate-fadeInUp">
             <div className="w-20 h-20 bg-zinc-900 text-zinc-600 rounded-full flex items-center justify-center mx-auto mb-6 border border-zinc-800">
               <Search size={32} />
@@ -320,7 +367,7 @@ export default function ExplorePage() {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-              {ips.map((ip, index) => (
+              {filteredIps.map((ip, index) => (
                 <div key={ip.id} className="animate-fadeInUp" style={{ animationDelay: `${index * 50}ms` }}>
                   <IPCard asset={ip as any} />
                 </div>

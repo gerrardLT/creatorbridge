@@ -72,8 +72,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Determine the license price
-    const licensePrice = asset.mintingFee 
-      ? parseFloat(asset.mintingFee) 
+    const licensePrice = asset.mintingFee
+      ? parseFloat(asset.mintingFee)
       : asset.priceEth;
 
     // Create license record
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
       assetTitle: asset.title
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       license: {
         id: license.id,
         licenseId: license.licenseId,
@@ -145,7 +145,9 @@ export async function GET(request: NextRequest) {
         id: license.ipAsset.id,
         title: license.ipAsset.title,
         imageUrl: license.ipAsset.imageUrl,
-        priceEth: license.ipAsset.priceEth
+        priceEth: license.ipAsset.priceEth,
+        licenseType: license.ipAsset.licenseType,
+        mintingFee: license.ipAsset.mintingFee
       }
     }));
 

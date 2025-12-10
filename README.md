@@ -1,155 +1,192 @@
 # CreatorBridge
 
-> 基于 Story Protocol 的 IP 资产管理平台，让创作者轻松注册、管理和授权数字知识产权。
+> An IP asset management platform built on Story Protocol, enabling creators to easily register, manage, and license their digital intellectual property.
 
-## ✨ 功能特性
+## Features
 
-- 🔐 **Coinbase Smart Wallet** - 无需安装扩展，使用 Passkey 一键登录
-- 📝 **IP 资产注册** - 将创意作品注册到 Story Protocol 链上
-- 🎫 **许可证管理** - 购买和管理 IP 使用许可证
-- 🔍 **资产浏览** - 探索和搜索已注册的 IP 资产
-- 📊 **个人仪表盘** - 查看资产、交易历史和收益统计
+- **Coinbase Smart Wallet** - One-click login with Passkey, no extension required
+- **IP Asset Registration** - Register creative works on Story Protocol blockchain
+- **License Management** - Purchase and manage IP usage licenses
+- **Asset Browsing** - Explore and search registered IP assets
+- **Personal Dashboard** - View assets, transaction history, and earnings statistics
 
-## 🛠️ 技术栈
+### New Features ✨
 
-| 类别 | 技术 |
-|------|------|
-| 框架 | Next.js 14 (App Router) |
-| 语言 | TypeScript |
-| 样式 | Tailwind CSS |
-| 数据库 | Prisma + SQLite |
-| 区块链 | Story Protocol (Aeneid 测试网) |
-| 钱包 | Coinbase Smart Wallet |
-| 索引器 | Goldsky (可选) |
-| 认证 | NextAuth.js |
+- **AI Video Generation** - Generate real videos using ZhipuAI CogVideoX-3 model
+  - Text-to-video generation (5s or 10s clips)
+  - Up to 4K resolution support
+  - Automatic CORS proxy for video playback
+  
+- **License Templates** - Save and reuse license configurations
+  - Create templates from current license settings
+  - Load templates with one click
+  - Clear button to reset to defaults
+  
+- **Advanced Explore Filters** - Enhanced marketplace filtering
+  - Filter by license type (All/Non-Commercial/Commercial Use/Commercial Remix)
+  - Sort by newest, price, or popularity
+  - Custom styled dropdown components
+  
+- **Draft Auto-Save** - Never lose your work
+  - Automatically saves form data to localStorage
+  - Recovery modal on page reload
+  
+- **Video Support in Cards** - Hover-to-play video previews
+  - IPCard components detect video URLs
+  - Auto-play on hover in explore page
+  - Full controls in detail page
 
-## 🚀 快速开始
+## Tech Stack
 
-### 1. 克隆项目
+| Category | Technology |
+|----------|------------|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS |
+| Database | Prisma + PostgreSQL (Neon) |
+| Blockchain | Story Protocol (Aeneid Testnet) |
+| Wallet | Coinbase Smart Wallet |
+| Indexer | Goldsky (Optional) |
+| Authentication | NextAuth.js |
+| AI Video | ZhipuAI CogVideoX-3 |
+
+## Quick Start
+
+### 1. Clone the Repository
 
 ```bash
 git clone <repo-url>
-cd creatorbridge-next
+cd creatorbridge
 ```
 
-### 2. 安装依赖
+### 2. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### 3. 配置环境变量
+### 3. Configure Environment Variables
 
 ```bash
 cp .env.example .env
 ```
 
-编辑 `.env` 文件，填入必要的配置：
+Edit the `.env` file and fill in the required configurations:
 
 ```env
-# 数据库
-DATABASE_URL="file:./dev.db"
+# Database
+DATABASE_URL="your-neon-database-url"
 
 # Story Protocol
 STORY_RPC_URL="https://aeneid.storyrpc.io"
-STORY_PRIVATE_KEY="0x你的测试钱包私钥"
+STORY_PRIVATE_KEY="0xYourTestWalletPrivateKey"
 
 # Coinbase
-NEXT_PUBLIC_CDP_CLIENT_API_KEY="你的CDP客户端API密钥"
+NEXT_PUBLIC_CDP_CLIENT_API_KEY="YourCDPClientAPIKey"
 
 # NextAuth
-NEXTAUTH_SECRET="随机生成的密钥"
+NEXTAUTH_SECRET="RandomlyGeneratedSecret"
 NEXTAUTH_URL="http://localhost:3001"
 ```
 
-> 详细配置指南请查看 [docs/SETUP_GUIDE.md](docs/SETUP_GUIDE.md)
+> For detailed configuration guide, see [docs/NEON_DATABASE_SETUP.md](docs/NEON_DATABASE_SETUP.md)
 
-### 4. 初始化数据库
+### 4. Initialize Database
 
 ```bash
 npx prisma generate
 npx prisma db push
 ```
 
-### 5. 启动开发服务器
+### 5. Start Development Server
 
 ```bash
 npm run dev
 ```
 
-访问 http://localhost:3001
+Visit http://localhost:3001
 
-## 📁 项目结构
+## Project Structure
 
 ```
-creatorbridge-next/
-├── app/                      # Next.js 页面
-│   ├── page.tsx             # 首页
-│   ├── explore/             # 探索市场
-│   ├── create/              # 创建 IP
-│   ├── profile/             # 个人中心
-│   ├── ip/[id]/             # IP 详情
-│   └── api/                 # API 路由
-│       ├── ip/              # IP 资产 API
-│       ├── license/         # 许可证 API
-│       ├── user/            # 用户 API
-│       ├── indexer/         # 索引器 API
-│       └── auth/            # 认证 API
+creatorbridge/
+├── app/                      # Next.js pages
+│   ├── page.tsx             # Home page
+│   ├── explore/             # Marketplace
+│   ├── create/              # Create IP
+│   ├── profile/             # User profile
+│   ├── ip/[id]/             # IP details
+│   └── api/                 # API routes
+│       ├── ip/              # IP asset API
+│       ├── license/         # License API
+│       ├── user/            # User API
+│       ├── indexer/         # Indexer API
+│       └── auth/            # Authentication API
 │
-├── components/              # React 组件
-├── context/                 # 全局状态管理
-├── lib/                     # 核心服务
+├── components/              # React components
+├── context/                 # Global state management
+├── lib/                     # Core services
 │   ├── story-protocol.ts   # Story Protocol SDK
-│   ├── coinbase-wallet.ts  # Coinbase 钱包
-│   ├── goldsky.ts          # Goldsky 索引器
-│   ├── auth.ts             # NextAuth 配置
-│   └── db/                 # 数据库操作
+│   ├── coinbase-wallet.ts  # Coinbase wallet
+│   ├── goldsky.ts          # Goldsky indexer
+│   ├── auth.ts             # NextAuth config
+│   └── db/                 # Database operations
 │
-├── prisma/                  # 数据库模型
-├── subgraph/                # Goldsky Subgraph (可选)
-└── types/                   # TypeScript 类型
+├── prisma/                  # Database schema
+├── subgraph/                # Goldsky Subgraph (Optional)
+└── types/                   # TypeScript types
 ```
 
-## 🔌 API 端点
+## API Endpoints
 
-| 端点 | 方法 | 描述 |
-|------|------|------|
-| `/api/ip` | GET | 获取 IP 资产列表 |
-| `/api/ip` | POST | 注册新 IP 资产 |
-| `/api/ip/[id]` | GET | 获取 IP 详情 |
-| `/api/license` | GET | 获取用户许可证 |
-| `/api/license` | POST | 购买许可证 |
-| `/api/user` | POST | 创建/更新用户 |
-| `/api/indexer` | GET | 查询索引数据 |
-| `/api/auth/*` | * | NextAuth 认证 |
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/ip` | GET | Get IP asset list with filters |
+| `/api/ip` | POST | Register new IP asset |
+| `/api/ip/[id]` | GET | Get IP details |
+| `/api/ip/[id]` | DELETE | Delete IP asset |
+| `/api/ip/[id]/related` | GET | Get related IP recommendations |
+| `/api/license` | GET | Get user licenses |
+| `/api/license` | POST | Purchase license |
+| `/api/user` | POST | Create/update user |
+| `/api/user` | PATCH | Update user profile |
+| `/api/templates` | GET/POST/PUT/DELETE | License template CRUD |
+| `/api/ai-video` | POST | Generate AI video (CogVideoX-3) |
+| `/api/video-proxy` | GET | Proxy external video URLs |
+| `/api/tags` | GET/POST | Tag management |
+| `/api/favorites` | GET/POST/DELETE | Favorite IP management |
+| `/api/follow` | GET/POST/DELETE | User follow management |
+| `/api/transactions` | GET | Transaction history with filters |
+| `/api/indexer` | GET | Query indexed data |
+| `/api/auth/*` | * | NextAuth authentication |
 
-## 🔗 Story Protocol 集成
+## Story Protocol Integration
 
-项目集成了 Story Protocol SDK，支持以下链上操作：
+The project integrates Story Protocol SDK, supporting the following on-chain operations:
 
-- **registerIP** - 注册 IP 资产到链上
-- **mintLicense** - 铸造许可证 NFT
-- **attachLicenseTerms** - 附加许可条款
-- **registerDerivative** - 注册衍生作品
+- **registerIP** - Register IP assets on-chain
+- **mintLicense** - Mint license NFTs
+- **attachLicenseTerms** - Attach license terms
+- **registerDerivative** - Register derivative works
 
-## 📱 钱包连接
+## Wallet Connection
 
-使用 Coinbase Smart Wallet，支持：
+Using Coinbase Smart Wallet, supporting:
 
-- **Passkey 登录** - 使用 Windows Hello / Touch ID / Face ID
-- **手机扫码** - 使用 Coinbase App 扫码登录
+- **Passkey Login** - Use Windows Hello / Touch ID / Face ID
+- **Mobile Scan** - Scan with Coinbase App to login
 
-## 🌐 网络配置
+## Network Configuration
 
-| 网络 | Chain ID | RPC URL |
-|------|----------|---------|
-| Aeneid (测试网) | 1315 | https://aeneid.storyrpc.io |
+| Network | Chain ID | RPC URL |
+|---------|----------|---------|
+| Aeneid (Testnet) | 1315 | https://aeneid.storyrpc.io |
 | Mainnet | 1514 | https://mainnet.storyrpc.io |
 
-## 📄 许可证
+## License
 
 MIT License
 
-## 🤝 贡献
+## Contributing
 
-欢迎提交 Issue 和 Pull Request！
+Issues and Pull Requests are welcome!

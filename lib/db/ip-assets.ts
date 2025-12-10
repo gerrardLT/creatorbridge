@@ -1,11 +1,15 @@
 import prisma from '@/lib/prisma';
 
+export type SortOption = 'newest' | 'oldest' | 'price_asc' | 'price_desc';
+
 export async function findAllIPAssets(options?: {
   search?: string;
   creatorId?: string;
   minPrice?: number;
   maxPrice?: number;
   verified?: boolean;
+  licenseType?: string;
+  sortBy?: SortOption;
   skip?: number;
   take?: number;
 }) {
@@ -34,11 +38,34 @@ export async function findAllIPAssets(options?: {
     where.txHash = { not: null };
   }
 
+  if (options?.licenseType) {
+    where.licenseType = options.licenseType;
+  }
+
+  // Determine sort order
+  let orderBy: any = { createdAt: 'desc' };
+  if (options?.sortBy) {
+    switch (options.sortBy) {
+      case 'newest':
+        orderBy = { createdAt: 'desc' };
+        break;
+      case 'oldest':
+        orderBy = { createdAt: 'asc' };
+        break;
+      case 'price_asc':
+        orderBy = { priceEth: 'asc' };
+        break;
+      case 'price_desc':
+        orderBy = { priceEth: 'desc' };
+        break;
+    }
+  }
+
   const [assets, total] = await Promise.all([
     prisma.iPAsset.findMany({
       where,
       include: { creator: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy,
       skip: options?.skip,
       take: options?.take
     }),

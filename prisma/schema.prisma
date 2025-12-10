@@ -13,12 +13,44 @@ model User {
   name          String?
   email         String?   @unique
   avatarUrl     String?
+  bio           String?   // User biography
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
   ipAssets         IPAsset[]
   transactions     Transaction[]
   licenseTemplates LicenseTemplate[]
+  
+  // Follow relationships
+  following        Follow[]   @relation("Following")
+  followers        Follow[]   @relation("Followers")
+  
+  // Favorites
+  favorites        Favorite[]
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  
+  follower    User     @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  @@unique([followerId, followingId])
+}
+
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  ipAssetId String
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAsset   IPAsset  @relation(fields: [ipAssetId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, ipAssetId])
 }
 
 model LicenseTemplate {
@@ -35,6 +67,29 @@ model LicenseTemplate {
   user               User     @relation(fields: [userId], references: [id])
   
   @@unique([userId, name])
+}
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  color       String   @default("#6366f1") // Hex color
+  icon        String?  // Emoji or icon name
+  createdAt   DateTime @default(now())
+  
+  ipAssets    IPAssetTag[]
+}
+
+model IPAssetTag {
+  id        String   @id @default(cuid())
+  ipAssetId String
+  tagId     String
+  createdAt DateTime @default(now())
+  
+  ipAsset   IPAsset  @relation(fields: [ipAssetId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@unique([ipAssetId, tagId])
 }
 
 model IPAsset {
@@ -59,6 +114,8 @@ model IPAsset {
   creatorId     String
   creator       User      @relation(fields: [creatorId], references: [id])
   licenses      License[]
+  tags          IPAssetTag[]
+  favorites     Favorite[]
   
   // Derivative relations
   parentRelations DerivativeRelation[] @relation("ChildIP")
@@ -102,3 +159,4 @@ model Transaction {
   assetId       String?
   assetTitle    String
 }
+

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = walletAddress 
+    const user = walletAddress
       ? await findUserByWallet(walletAddress)
       : await findUserById(userId!);
 
@@ -76,7 +76,8 @@ export async function POST(request: NextRequest) {
         id: user.id,
         name: user.name || 'Unknown',
         walletAddress: user.walletAddress,
-        avatarUrl: user.avatarUrl || ''
+        avatarUrl: user.avatarUrl || '',
+        bio: (user as any).bio || ''
       }
     });
   } catch (error) {
@@ -87,3 +88,85 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// PATCH /api/user - Update user profile
+export async function PATCH(request: NextRequest) {
+  try {
+    let body;
+    try {
+      body = await request.json();
+    } catch (jsonError) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+
+    const { userId, name, bio } = body;
+
+    if (!userId || typeof userId !== 'string') {
+      return NextResponse.json(
+        { error: 'User ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate name
+    if (name !== undefined) {
+      if (typeof name !== 'string' || name.trim().length === 0) {
+        return NextResponse.json(
+          { error: 'Name cannot be empty' },
+          { status: 400 }
+        );
+      }
+      if (name.length > 50) {
+        return NextResponse.json(
+          { error: 'Name must be 50 characters or less' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Validate bio
+    if (bio !== undefined && typeof bio === 'string' && bio.length > 200) {
+      return NextResponse.json(
+        { error: 'Bio must be 200 characters or less' },
+        { status: 400 }
+      );
+    }
+
+    // Import prisma directly for update
+    const prisma = (await import('@/lib/prisma')).default;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(name !== undefined && { name: name.trim() }),
+        ...(bio !== undefined && { bio: bio.trim() })
+      }
+    });
+
+    return NextResponse.json({
+      user: {
+        id: updatedUser.id,
+        name: updatedUser.name || 'Unknown',
+        walletAddress: updatedUser.walletAddress,
+        avatarUrl: updatedUser.avatarUrl || '',
+        bio: updatedUser.bio || ''
+      }
+    });
+  } catch (error: any) {
+    if (error.code === 'P2025') {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+    console.error('Error updating user:', error);
+    return NextResponse.json(
+      { error: 'Failed to update user' },
+      { status: 500 }
+    );
+  }
+}
+

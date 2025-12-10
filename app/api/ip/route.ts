@@ -19,6 +19,8 @@ export async function GET(request: NextRequest) {
     const minPrice = searchParams.get('minPrice');
     const maxPrice = searchParams.get('maxPrice');
     const verified = searchParams.get('verified') === 'true';
+    const licenseType = searchParams.get('licenseType') || undefined;
+    const sortBy = searchParams.get('sortBy') as 'newest' | 'oldest' | 'price_asc' | 'price_desc' | undefined;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
 
@@ -28,6 +30,8 @@ export async function GET(request: NextRequest) {
       minPrice: minPrice ? parseFloat(minPrice) : undefined,
       maxPrice: maxPrice ? parseFloat(maxPrice) : undefined,
       verified: verified || undefined,
+      licenseType,
+      sortBy,
       skip: (page - 1) * limit,
       take: limit
     });
@@ -54,8 +58,8 @@ export async function GET(request: NextRequest) {
       }
     }));
 
-    return NextResponse.json({ 
-      assets: formattedAssets, 
+    return NextResponse.json({
+      assets: formattedAssets,
       total,
       page,
       totalPages: Math.ceil(total / limit)
@@ -82,16 +86,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { 
-      title, 
-      description, 
-      priceEth, 
-      imageUrl, 
+    const {
+      title,
+      description,
+      priceEth,
+      imageUrl,
       creatorId,
       walletAddress,
       licenseType,
       mintingFee,
-      commercialRevShare 
+      commercialRevShare
     } = body;
 
     // Basic validation
@@ -119,9 +123,9 @@ export async function POST(request: NextRequest) {
         commercialRevShare
       });
       if (!licenseValidation.valid) {
-        return NextResponse.json({ 
-          error: 'Invalid license configuration', 
-          details: licenseValidation.errors 
+        return NextResponse.json({
+          error: 'Invalid license configuration',
+          details: licenseValidation.errors
         }, { status: 400 });
       }
     }
@@ -181,7 +185,7 @@ export async function POST(request: NextRequest) {
       spgNftContract,
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       asset: {
         id: asset.id,
         title: asset.title,

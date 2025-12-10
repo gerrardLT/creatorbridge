@@ -10,13 +10,13 @@ function DerivativePageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const parentId = searchParams.get('parentId');
-  
+
   const { user, addNotification } = useApp();
-  
+
   const [parentIp, setParentIp] = useState<any>(null);
   const [isLoadingParent, setIsLoadingParent] = useState(true);
   const [validationError, setValidationError] = useState<string | null>(null);
-  
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -24,7 +24,7 @@ function DerivativePageContent() {
   const [fileType, setFileType] = useState<'image' | 'audio' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -38,10 +38,10 @@ function DerivativePageContent() {
     try {
       const res = await fetch(`/api/ip/${parentId}`);
       const data = await res.json();
-      
+
       if (data.asset) {
         setParentIp(data.asset);
-        
+
         // Check if derivatives are allowed
         if (data.asset.licenseType !== 'COMMERCIAL_REMIX') {
           setValidationError('This IP does not allow derivative works. Only Commercial Remix licenses permit derivatives.');
@@ -61,16 +61,16 @@ function DerivativePageContent() {
       const selectedFile = e.target.files[0];
       const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
       const audioExtensions = ['mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac'];
-      
+
       if (audioExtensions.includes(fileExtension || '')) {
         setFileType('audio');
       } else {
         setFileType('image');
       }
-      
+
       setFile(selectedFile);
-      
-      // 转换为 Base64 以便持久化存储
+
+      // Convert to Base64 for persistent storage
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result as string);
@@ -103,17 +103,17 @@ function DerivativePageContent() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        const message = data.onChain 
+        const message = data.onChain
           ? '🎉 Derivative registered on Story Protocol! Transaction confirmed.'
           : '✅ Derivative saved locally. Configure Story Protocol for on-chain registration.';
         addNotification('success', message);
-        
+
         // Show transaction hash if available
         if (data.txHash) {
           console.log('✅ Transaction Hash:', data.txHash);
           console.log('🔗 View on Explorer:', `https://aeneid.storyscan.xyz/tx/${data.txHash}`);
         }
-        
+
         router.push(`/ip/${data.childIp.id}`);
       } else {
         throw new Error(data.error || 'Failed to register derivative');
@@ -284,7 +284,7 @@ function DerivativePageContent() {
                   <div className="text-sm">
                     <p className="text-zinc-300 font-medium">Attribution Required</p>
                     <p className="text-zinc-500 mt-1">
-                      Your derivative work will be linked to the original IP on-chain. 
+                      Your derivative work will be linked to the original IP on-chain.
                       Revenue sharing will be automatically enforced via Story Protocol.
                     </p>
                   </div>

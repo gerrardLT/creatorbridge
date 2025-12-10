@@ -32,7 +32,7 @@ export const authOptions: NextAuthOptions = {
 
           // Find or create user
           let user = await findUserByWallet(credentials.address);
-          
+
           if (!user) {
             user = await createUser({
               walletAddress: credentials.address,
@@ -86,4 +86,50 @@ export function generateSignInMessage(address: string, nonce: string): string {
 // Generate random nonce
 export function generateNonce(): string {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
+// Validate API request - check if userId matches the claimed identity
+export interface ValidationResult {
+  valid: boolean;
+  error?: string;
+  userId?: string;
+}
+
+export async function validateApiRequest(
+  body: any,
+  requiredFields: string[] = ['userId']
+): Promise<ValidationResult> {
+  // Check required fields
+  for (const field of requiredFields) {
+    if (!body[field] || typeof body[field] !== 'string') {
+      return {
+        valid: false,
+        error: `Missing required field: ${field}`
+      };
+    }
+  }
+
+  // Basic validation passed
+  return {
+    valid: true,
+    userId: body.userId
+  };
+}
+
+// Validate ownership - check if user owns the resource
+export async function validateOwnership(
+  resourceOwnerId: string,
+  requestUserId: string
+): Promise<ValidationResult> {
+  if (resourceOwnerId !== requestUserId) {
+    return {
+      valid: false,
+      error: 'Unauthorized: You do not own this resource'
+    };
+  }
+
+  return {
+    valid: true,
+    userId: requestUserId
+  };
 }

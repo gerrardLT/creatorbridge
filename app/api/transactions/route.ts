@@ -1,14 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { findTransactionsByUser } from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic';
 
-// GET /api/transactions - Get user's transactions
+// GET /api/transactions - Get user's transactions with optional filtering
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const type = searchParams.get('type'); // REGISTER | PURCHASE | SALE
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const format = searchParams.get('format'); // json | csv
 
     if (!userId) {
       return NextResponse.json(
@@ -17,7 +21,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const transactions = await findTransactionsByUser(userId);
+    // Build where clause
+    const where: any = { userId };
+
+    if (type && ['REGISTER', 'PURCHASE', 'SALE'].includes(type)) {
+      where.type = type;
+    }
+
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        where.createdAt.gte = new Date(startDate);
+      }
+      if (endDate) {
+        where.createdAt.lte = new Date(endDate);
+      }
+    }
+
+    const transactions = await prisma.transaction.findMany({
+      where,
+      orderBy: { createdAt: 'desc' }
+    });
 
     const formattedTransactions = transactions.map(tx => ({
       id: tx.id,
@@ -29,7 +53,26 @@ export async function GET(request: NextRequest) {
       assetTitle: tx.assetTitle
     }));
 
-    return NextResponse.json({ transactions: formattedTransactions });
+    // Return CSV if requested
+    if (format === 'csv') {
+      const csvHeaders = 'ID,Type,Amount,Hash,Date,Asset ID,Asset Title\n';
+      const csvRows = formattedTransactions.map(tx =>
+        `"${tx.id}","${tx.type}","${tx.amount}","${tx.hash}","${tx.date}","${tx.assetId || ''}","${tx.assetTitle}"`
+      ).join('\n');
+
+      return new NextResponse(csvHeaders + csvRows, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv',
+          'Content-Disposition': `attachment; filename="transactions_${userId}_${new Date().toISOString().split('T')[0]}.csv"`
+        }
+      });
+    }
+
+    return NextResponse.json({
+      transactions: formattedTransactions,
+      total: formattedTransactions.length
+    });
   } catch (error) {
     console.error('Error fetching transactions:', error);
     return NextResponse.json(

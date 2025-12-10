@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { IPAsset } from '@/types';
-import { ShieldCheck, User as UserIcon, CheckCircle, Image, Video } from 'lucide-react';
+import { ShieldCheck, User as UserIcon, CheckCircle } from 'lucide-react';
 import LicenseBadge from './LicenseBadge';
 import { LicenseType } from '@/lib/types/license';
 
@@ -18,12 +18,6 @@ interface IPCardProps {
 }
 
 export function IPCard({ asset }: IPCardProps) {
-  // Helper to detect if URL is a video
-  const isVideo = asset.imageUrl?.includes('/api/video-proxy') ||
-    asset.imageUrl?.endsWith('.mp4') ||
-    asset.imageUrl?.includes('video') ||
-    asset.imageUrl?.includes('_watermark.mp4');
-
   return (
     <Link
       href={`/ip/${asset.id}`}
@@ -70,19 +64,12 @@ export function IPCard({ asset }: IPCardProps) {
         </div>
 
         <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {asset.ipId && (
-              <span className="bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
-                <CheckCircle className="w-3 h-3" />
-                ON-CHAIN
-              </span>
-            )}
-            {/* Media Type Badge */}
-            <span className={`backdrop-blur-md border text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1 ${isVideo ? 'bg-pink-500/20 border-pink-500/30 text-pink-400' : 'bg-cyan-500/20 border-cyan-500/30 text-cyan-400'}`}>
-              {isVideo ? <Video className="w-3 h-3" /> : <Image className="w-3 h-3" />}
-              {isVideo ? 'VIDEO' : 'IMAGE'}
+          {asset.ipId && (
+            <span className="bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-[10px] font-bold px-2.5 py-1 rounded-full shadow-lg flex items-center gap-1">
+              <CheckCircle className="w-3 h-3" />
+              ON-CHAIN
             </span>
-          </div>
+          )}
           <div className="ml-auto">
             <LicenseBadge licenseType={asset.licenseType} size="sm" />
           </div>
